@@ -1,0 +1,112 @@
+<!doctype html>
+<html lang="fa" dir="rtl">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="theme-color" content="#edf3e9" />
+    <meta name="description" content="سازه‌ها را ادغام کن، جمعیت بساز و قصهٔ پادشاهی خودت را در یک بازی سه‌بعدی آرام و دلنشین بنویس." />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
+    <title>پادشاهی ۲۰۴۸ · Kingdom 2048</title>
+  </head>
+  <body>
+    <svg class="svg-library" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+      <symbol id="i-crown" viewBox="0 0 24 24"><path d="m3 6 4.5 4L12 4l4.5 6L21 6l-2 12H5L3 6Z"/><path d="M6 21h12M8 15h8"/></symbol>
+      <symbol id="i-users" viewBox="0 0 24 24"><circle cx="9" cy="8" r="3"/><path d="M3 20v-2a6 6 0 0 1 12 0v2M16 5a3 3 0 0 1 0 6m2 3a5 5 0 0 1 3 4v2"/></symbol>
+      <symbol id="i-volume" viewBox="0 0 24 24"><path d="m11 4-6 5H2v6h3l6 5V4ZM15 8a6 6 0 0 1 0 8m3-11a10 10 0 0 1 0 14"/></symbol>
+      <symbol id="i-muted" viewBox="0 0 24 24"><path d="m11 4-6 5H2v6h3l6 5V4Zm5 5 6 6m0-6-6 6"/></symbol>
+      <symbol id="i-restart" viewBox="0 0 24 24"><path d="M3 10a9 9 0 1 1 1 7M3 4v6h6"/></symbol>
+      <symbol id="i-kingdom" viewBox="0 0 24 24"><path d="M3 21V8h4v4h3V6l2-3 2 3v6h3V8h4v13H3Zm7 0v-5h4v5M3 5v3m4-3v3m10-3v3m4-3v3"/></symbol>
+      <symbol id="i-palette" viewBox="0 0 24 24"><path d="M12 3a9 9 0 0 0 0 18h1a2 2 0 0 0 1-3.7 1.5 1.5 0 0 1 1-2.8h2A4 4 0 0 0 21 11a9 9 0 0 0-9-8Z"/><path d="M7.5 10h.01M10 6.5h.01M15 7h.01M17 10.5h.01" stroke-width="3"/></symbol>
+      <symbol id="i-trophy" viewBox="0 0 24 24"><path d="M7 3h10v6a5 5 0 0 1-10 0V3Zm0 2H3v3a4 4 0 0 0 4 4m10-7h4v3a4 4 0 0 1-4 4m-5 2v7m-4 0h8"/></symbol>
+      <symbol id="i-undo" viewBox="0 0 24 24"><path d="m8 4-5 5 5 5M3 9h11a7 7 0 0 1 0 14" transform="translate(0 -2)"/></symbol>
+      <symbol id="i-swap" viewBox="0 0 24 24"><path d="M3 7h17m-4-4 4 4-4 4M21 17H4m4-4-4 4 4 4"/></symbol>
+      <symbol id="i-broom" viewBox="0 0 24 24"><path d="m14 10 7-7m-6 8-3-3-9 6 7 7 6-9-1-1ZM5 16l4-4m-1 7 4-5"/></symbol>
+      <symbol id="i-leaf" viewBox="0 0 24 24"><path d="M20 3S8 1 4 8c-4 8 6 15 12 7 3-4 4-12 4-12ZM3 21 15 9M9 15v-5m0 5h5"/></symbol>
+      <symbol id="i-chevron" viewBox="0 0 24 24"><path d="m7 10 5 5 5-5"/></symbol>
+      <symbol id="i-lock" viewBox="0 0 24 24"><rect x="5" y="10" width="14" height="11" rx="3"/><path d="M8 10V7a4 4 0 0 1 8 0v3m-4 5v2"/></symbol>
+      <symbol id="i-check" viewBox="0 0 24 24"><path d="m5 12 4 4L19 6"/></symbol>
+      <symbol id="i-spark" viewBox="0 0 24 24"><path d="m12 3 2.5 6.5L21 12l-6.5 2.5L12 21l-2.5-6.5L3 12l6.5-2.5L12 3Z"/></symbol>
+      <symbol id="i-close" viewBox="0 0 24 24"><path d="m6 6 12 12M18 6 6 18"/></symbol>
+      <symbol id="i-touch" viewBox="0 0 24 24"><path d="M9 12V5a2 2 0 0 1 4 0v6l2-1 5 3-2 8H9l-5-7a2 2 0 0 1 3-2l2 2m-5-8L2 8m18-2 2 2"/></symbol>
+    </svg>
+
+    <canvas id="game-canvas" tabindex="0" aria-label="صفحهٔ بازی پادشاهی ۲۰۴۸؛ با کلیدهای جهت یا کشیدن ماوس و انگشت در امتداد خانه‌ها سازه‌ها را ادغام کنید." aria-describedby="play-instructions"></canvas>
+    <div class="atmosphere" aria-hidden="true"><i></i><i></i><i></i></div>
+
+    <main class="game-shell">
+      <header class="topbar">
+        <div class="header-row">
+          <a class="brand" href="./" aria-label="پادشاهی ۲۰۴۸، خانه">
+            <span class="brand-mark"><svg class="icon"><use href="#i-crown" /></svg></span>
+            <span><strong>پادشاهی <b>۲۰۴۸</b></strong><small><span id="brand-tagline">قصهٔ سرزمینت را بساز</span><span id="username-badge" class="username-badge" hidden><svg class="icon"><use href="#i-crown" /></svg><bdi id="username-label" dir="auto"></bdi></span></small></span>
+          </a>
+          <nav class="main-nav" aria-label="بخش‌های بازی">
+            <button class="nav-button" data-modal="kingdoms"><svg class="icon"><use href="#i-kingdom" /></svg><span>سرزمین‌ها</span></button>
+            <button class="nav-button" data-modal="themes"><svg class="icon"><use href="#i-palette" /></svg><span>استایل‌ها</span></button>
+            <button class="nav-button" data-modal="leaderboard"><svg class="icon"><use href="#i-trophy" /></svg><span>برترین‌ها</span></button>
+          </nav>
+          <div class="quick-actions">
+            <button id="mute-button" class="icon-button" aria-label="قطع صدا" aria-pressed="false" title="صدا"><svg class="icon"><use id="sound-icon" href="#i-volume" /></svg><span class="sr-only">صدا</span></button>
+            <button class="restart-button" data-new-run><svg class="icon"><use href="#i-restart" /></svg><span>شروع مجدد</span></button>
+          </div>
+        </div>
+        <div class="stats-row">
+          <section class="score-card glass" aria-label="جمعیت این دور">
+            <div class="score-label"><svg class="icon"><use href="#i-users" /></svg><span>جمعیت فعلی</span><span class="live-dot" aria-hidden="true"></span></div>
+            <div class="score-value"><strong id="run-population" aria-live="polite" aria-atomic="true">۰</strong><span>نفر</span></div>
+          </section>
+          <section class="journey-card glass" aria-label="پیشرفت سرزمین‌ها">
+            <div class="journey-top"><span>جمعیت کل <strong id="total-population">۰</strong></span><span id="next-theme-label" class="next-theme-label">به‌سوی سلسله آفتاب</span></div>
+            <div id="population-progress" class="progress-track" role="progressbar" aria-label="پیشرفت باز شدن سرزمین بعدی" aria-valuemin="0" aria-valuemax="300000" aria-valuenow="0"><div id="progress-fill" class="progress-fill"></div></div>
+            <div class="journey-bottom"><span id="progress-hint">هر ادغام، یک قدم به سرزمینی تازه</span><span id="progress-fraction" dir="ltr">۰ / ۳۰۰٬۰۰۰</span></div>
+          </section>
+          <section class="record-card glass" aria-label="بالاترین سازه در همهٔ دورها">
+            <span class="record-icon"><svg class="icon"><use href="#i-kingdom" /></svg></span>
+            <div><span class="record-label">بالاترین سازه</span><strong id="highest-building">اردوگاه کوچک</strong><small id="highest-level">سطح ۱ از ۱۳</small></div>
+          </section>
+        </div>
+      </header>
+
+      <section class="play-region" aria-label="سرزمین شما">
+        <div class="world-bar">
+          <span class="world-eyebrow"><span class="live-dot"></span>سرزمین شما</span>
+          <div class="world-selector">
+            <button id="world-button" class="world-button" aria-expanded="false" aria-controls="theme-picker"><svg class="icon world-leaf"><use href="#i-leaf" /></svg><strong id="active-theme-title">چمنزار قصه‌ها</strong><svg class="icon chevron"><use href="#i-chevron" /></svg></button>
+            <span id="theme-bonus" class="theme-bonus" dir="rtl">+۰٪ جمعیت</span>
+            <div id="theme-picker" class="theme-picker glass" hidden aria-label="انتخاب سریع سرزمین"></div>
+          </div>
+          <span class="world-decoration" aria-hidden="true">✦</span>
+        </div>
+        <div id="board-viewport" class="board-viewport">
+          <div class="scene-note" aria-hidden="true"><span class="note-line"></span><span>از یک کلبه،<br /><strong>تا یک پادشاهی.</strong></span><small>آرام بساز. بزرگ رؤیا ببین.</small></div>
+          <div id="tile-labels" class="tile-labels" aria-hidden="true"></div>
+          <div id="effects-layer" class="effects-layer" aria-hidden="true"></div>
+          <div id="loading-panel" class="loading-panel glass"><span class="loading-crown"><svg class="icon"><use href="#i-crown" /></svg></span><strong>سرزمینت دارد جان می‌گیرد…</strong></div>
+        </div>
+        <div id="play-instructions" class="play-instructions"><span class="keyboard-hint"><span class="keycaps" dir="ltr"><kbd>←</kbd><kbd>↑</kbd><kbd>↓</kbd><kbd>→</kbd></span> یا <span dir="ltr">W A S D</span><span class="mouse-hint">· ماوس را در امتداد خانه‌ها بکش</span></span><span class="touch-hint"><svg class="icon"><use href="#i-touch" /></svg>انگشتت را در امتداد خانه‌ها بکش</span><span class="instruction-divider"></span><span>سازه‌های هم‌عدد را به هم برسان</span></div>
+      </section>
+
+      <footer class="game-footer">
+        <div class="footer-note"><svg class="icon"><use href="#i-spark" /></svg><span>کمی جادو،<br /><strong>وقتی که لازم داری</strong></span></div>
+        <div class="powerups glass" role="group" aria-label="کمک‌های بازی">
+          <button id="undo-button" class="powerup-button" disabled title="برگشتن به قبل از آخرین حرکت؛ فقط یک‌بار برای هر بازیکن"><span class="powerup-icon undo-icon"><svg class="icon"><use href="#i-undo" /></svg></span><span class="powerup-copy"><strong>بازگشت</strong><small>آخرین حرکت</small></span><span id="undo-count" class="count-badge">۱</span></button>
+          <span class="powerup-divider" aria-hidden="true"></span>
+          <button id="swap-button" class="powerup-button" aria-pressed="false" title="انتخاب و جابه‌جایی دو سازه؛ فقط یک‌بار برای هر بازیکن"><span class="powerup-icon swap-icon"><svg class="icon"><use href="#i-swap" /></svg></span><span class="powerup-copy"><strong>جابه‌جایی</strong><small>دو سازهٔ دلخواه</small></span><span id="swap-count" class="count-badge">۱</span></button>
+          <span class="powerup-divider" aria-hidden="true"></span>
+          <button id="sweeper-button" class="powerup-button" title="حذف سازه‌های سطح یک و دو؛ اگر صفحه خالی شود یک سازهٔ تازه می‌روید؛ فقط یک‌بار برای هر بازیکن"><span class="powerup-icon sweeper-icon"><svg class="icon"><use href="#i-broom" /></svg></span><span class="powerup-copy"><strong>جارو</strong><small>جا برای رشد</small></span><span id="sweeper-count" class="count-badge">۱</span></button>
+        </div>
+        <div class="lifetime-note"><span class="tiny-stars" aria-hidden="true">✧</span><span>هر کمک، یک‌بار در تمام سفر<small>با شروع دوباره شارژ نمی‌شود</small></span></div>
+      </footer>
+      <div class="bottom-signature"><span>یک خانه. یک قصه. یک پادشاهی.</span><span id="move-count">۰ حرکت</span></div>
+    </main>
+    <aside id="swap-banner" class="swap-banner" aria-label="حالت جابه‌جایی" hidden><span class="swap-banner-icon"><svg class="icon"><use href="#i-swap" /></svg></span><span><strong>حالت جابه‌جایی: دو ساختمان را انتخاب کنید</strong><small id="swap-banner-hint">کمک شما پس از جابه‌جایی مصرف می‌شود.</small></span><button id="cancel-swap" type="button">انصراف</button></aside>
+    <div id="toast-region" class="toast-region" role="status" aria-live="polite" aria-atomic="true"></div>
+    <div id="unlock-toast-region" class="unlock-toast-region" role="status" aria-live="polite" aria-atomic="true"></div>
+    <dialog id="game-modal" class="game-modal" lang="fa" dir="rtl" aria-labelledby="modal-title"></dialog>
+    <noscript><div class="noscript-message">برای بازی پادشاهی ۲۰۴۸، جاوااسکریپت مرورگرت را فعال کن.</div></noscript>
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>
