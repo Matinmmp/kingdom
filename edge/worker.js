@@ -224,7 +224,7 @@ export function createWorker({ storage: suppliedStorage, cache: suppliedCache, n
                 result = { ok: true, isNewDailyBest, isNewAllTimeBest };
               }
               profile.version = (profile.version ?? 0) + 1;
-              if (!await storage.putJSON(userKey(stored.lower), profile, { 'if-match': stored.etag })) continue;
+              if (!await storage.putJSON(userKey(stored.lower), profile)) continue;
               if (url.pathname === '/api/score') {
                 await reconcileIndexes(storage, stored.lower, profile);
                 result.profile = publicProfile(profile);

@@ -2,6 +2,24 @@ import { MAX_SCORE, POWERUP_TYPES, THEME_REQUIREMENTS, validateUsername } from '
 
 export { validateUsername } from '../../shared/validation.js';
 
+const nativeRandomUUID = typeof globalThis.crypto?.randomUUID === 'function'
+  ? globalThis.crypto.randomUUID.bind(globalThis.crypto)
+  : null;
+
+function createUUID() {
+  if (nativeRandomUUID) return nativeRandomUUID();
+  const bytes = new Uint8Array(16);
+  globalThis.crypto.getRandomValues(bytes);
+  bytes[6] = (bytes[6] & 0x0f) | 0x40;
+  bytes[8] = (bytes[8] & 0x3f) | 0x80;
+  const hex = [...bytes].map((b) => b.toString(16).padStart(2, '0')).join('');
+  return `${hex.slice(0, 8)}-${hex.slice(8, 12)}-${hex.slice(12, 16)}-${hex.slice(16, 20)}-${hex.slice(20)}`;
+}
+
+if (typeof globalThis.crypto === 'object' && !nativeRandomUUID) {
+  try { globalThis.crypto.randomUUID = createUUID; } catch { /* ignore read-only crypto */ }
+}
+
 export class ApiService {
   constructor({ state, baseURL = import.meta.env?.VITE_API_BASE_URL || '', fetcher = globalThis.fetch.bind(globalThis), timeout = 20000 } = {}) {
     Object.assign(this, { state, fetcher, timeout });
@@ -49,7 +67,7 @@ export class ApiService {
 
   async consumePowerup(type) {
     if (!POWERUP_TYPES.includes(type)) return { ok: false, error: 'این کمک در بازی وجود ندارد.' };
-    if (!this.powerupOperations.has(type)) this.powerupOperations.set(type, crypto.randomUUID());
+    if (!this.powerupOperations.has(type)) this.powerupOperations.set(type, createUUID());
     const response = await this.request('powerup', { body: { ...this.identity(), type }, operationId: this.powerupOperations.get(type) });
     if (response.ok && response.powerups) {
       this.state.applyServerPowerups(response.powerups);

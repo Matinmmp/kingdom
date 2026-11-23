@@ -39,10 +39,12 @@ export class SoundManager {
       if (!this.context) {
         this.context = new Context();
         this.master = this.context.createGain();
-        this.master.gain.value = this.muted ? 0 : 0.7;
+        this.master.gain.value = this.muted ? 0 : 0.85;
         this.master.connect(this.context.destination);
       }
-      await this.context.resume();
+      if (this.context.state === 'suspended') {
+        await this.context.resume();
+      }
       if (this.disposed) return;
       this.unlocked = this.context.state === 'running';
       if (!this.unlocked) return;
@@ -56,7 +58,9 @@ export class SoundManager {
 
   setMuted(muted) {
     this.muted = Boolean(muted);
-    if (this.master) this.master.gain.setTargetAtTime(this.muted ? 0 : 0.7, this.context.currentTime, 0.025);
+    if (this.master && this.context) {
+      this.master.gain.setTargetAtTime(this.muted ? 0 : 0.85, this.context.currentTime, 0.025);
+    }
     for (const audio of this.media) audio.muted = this.muted;
     if (this.music instanceof HTMLAudioElement) {
       if (this.muted) this.music.pause();
@@ -73,7 +77,7 @@ export class SoundManager {
     if (AUDIO_ASSETS.bgm) {
       const audio = new Audio(AUDIO_ASSETS.bgm);
       audio.loop = true;
-      audio.volume = 0.17;
+      audio.volume = 0.25;
       audio.muted = this.muted;
       this.media.add(audio);
       this.music = audio;
@@ -92,13 +96,13 @@ export class SoundManager {
     if (this.music || !this.context || this.disposed || this.muted) return;
     const filter = this.context.createBiquadFilter();
     filter.type = 'lowpass';
-    filter.frequency.value = 750;
-    filter.Q.value = 0.45;
+    filter.frequency.value = 1250;
+    filter.Q.value = 0.4;
     filter.connect(this.master);
     this.music = {
       kind: 'ambient', filter, voices: new Set(), timer: null,
-      nextNoteTime: this.context.currentTime + 0.03,
-      nextPadTime: this.context.currentTime + randomBetween(2, 5),
+      nextNoteTime: this.context.currentTime + 0.05,
+      nextPadTime: this.context.currentTime + 0.05,
       lastNoteIndex: -1, lastChordIndex: -1,
     };
     this.scheduleProceduralMusic();
@@ -108,13 +112,13 @@ export class SoundManager {
     const oscillator = this.context.createOscillator();
     const envelope = this.context.createGain();
     const pan = this.context.createStereoPanner();
-    const hold = pad ? randomBetween(4, 6) : randomBetween(0.15, 0.55);
-    const peak = pad ? randomBetween(0.008, 0.012) : randomBetween(0.06, 0.08);
-    const attack = 0.4;
-    const release = 2.2;
-    oscillator.type = pad || Math.random() < 0.7 ? 'sine' : 'triangle';
+    const hold = pad ? randomBetween(3.5, 5.0) : randomBetween(0.2, 0.5);
+    const peak = pad ? randomBetween(0.045, 0.065) : randomBetween(0.11, 0.15);
+    const attack = pad ? 0.6 : 0.18;
+    const release = pad ? 2.0 : 1.4;
+    oscillator.type = pad || Math.random() < 0.65 ? 'sine' : 'triangle';
     oscillator.frequency.value = frequency;
-    pan.pan.value = randomBetween(-0.4, 0.4);
+    pan.pan.value = randomBetween(-0.35, 0.35);
     envelope.gain.setValueAtTime(0, start);
     envelope.gain.linearRampToValueAtTime(peak, start + attack);
     envelope.gain.setValueAtTime(peak, start + attack + hold);
@@ -137,21 +141,20 @@ export class SoundManager {
     if (music?.kind !== 'ambient' || music.timer !== null || this.disposed
       || this.muted || document.hidden || this.context.state !== 'running') return;
     const now = this.context.currentTime;
-    // Schedule a short distance ahead on the audio clock; never catch up missed notes in a burst.
-    music.nextNoteTime = Math.max(music.nextNoteTime, now + 0.05);
-    music.nextPadTime = Math.max(music.nextPadTime, now + 0.05);
+    music.nextNoteTime = Math.max(music.nextNoteTime, now + 0.04);
+    music.nextPadTime = Math.max(music.nextPadTime, now + 0.04);
     if (music.nextNoteTime <= now + 0.3) {
       let index = Math.floor(Math.random() * AMBIENT_SCALE.length);
       if (index === music.lastNoteIndex) index = (index + 1 + Math.floor(Math.random() * 7)) % AMBIENT_SCALE.length;
       this.ambientVoice(music, AMBIENT_SCALE[index], music.nextNoteTime);
       music.lastNoteIndex = index;
-      music.nextNoteTime += randomBetween(1.5, 3.5);
+      music.nextNoteTime += randomBetween(0.95, 1.85);
     }
     if (music.nextPadTime <= now + 0.3) {
       const index = (music.lastChordIndex + 1 + Math.floor(Math.random() * (PAD_CHORDS.length - 1))) % PAD_CHORDS.length;
       for (const note of PAD_CHORDS[index]) this.ambientVoice(music, AMBIENT_SCALE[note], music.nextPadTime, true);
       music.lastChordIndex = index;
-      music.nextPadTime += randomBetween(11, 18);
+      music.nextPadTime += randomBetween(6.5, 9.5);
     }
     music.timer = window.setTimeout(() => {
       music.timer = null;
@@ -178,7 +181,7 @@ export class SoundManager {
     this.music = null;
   }
 
-  tone(frequency, delay, duration, volume = 0.045, type = 'sine', endFrequency = frequency) {
+  tone(frequency, delay, duration, volume = 0.06, type = 'sine', endFrequency = frequency) {
     const start = this.context.currentTime + delay;
     const oscillator = this.context.createOscillator();
     const envelope = this.context.createGain();
@@ -202,11 +205,11 @@ export class SoundManager {
       powerup: [440, 659.25, 880], themeUnlock: [523.25, 659.25, 783.99, 1046.5, 1318.5],
       gameOver: [659.25, 523.25, 392],
     };
-    if (name === 'move') { this.tone(210, 0, 0.12, 0.018, 'sine', 125); return; }
+    if (name === 'move') { this.tone(210, 0, 0.12, 0.03, 'sine', 125); return; }
     const notes = melodies[name] ?? melodies.mergeLow;
     const pace = name === 'gameOver' ? 0.18 : name === 'themeUnlock' ? 0.12 : 0.065;
     notes.forEach((frequency, index) => this.tone(frequency, index * pace,
-      name === 'themeUnlock' || name === 'gameOver' ? 0.5 : 0.23, 0.035));
+      name === 'themeUnlock' || name === 'gameOver' ? 0.5 : 0.23, 0.05));
   }
 
   play(name) {
@@ -216,7 +219,7 @@ export class SoundManager {
     this.lastPlayed.set(name, now);
     if (!AUDIO_ASSETS[name]) { this.synthesize(name); return; }
     const audio = new Audio(AUDIO_ASSETS[name]);
-    audio.volume = 0.4;
+    audio.volume = 0.45;
     this.media.add(audio);
     const cleanup = () => this.media.delete(audio);
     audio.addEventListener('ended', cleanup, { once: true });

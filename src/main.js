@@ -127,7 +127,7 @@ function updateHUD(data, event = {}) {
   $('next-theme-label').textContent = nextTheme ? `به‌سوی ${nextTheme.title}` : 'همه پادشاهی‌ها باز شدند!';
   $('progress-hint').textContent = nextTheme
     ? `${formatNumber(Math.max(0, target - data.totalPopulation))} نفر تا یک قصهٔ تازه` : 'پنج سرزمین، بی‌نهایت قصه';
-  $('progress-fraction').textContent = nextTheme ? `${formatNumber(data.totalPopulation)} / ${formatNumber(target)}` : '۵ از ۵ سرزمین';
+  $('progress-fraction').textContent = nextTheme ? `${formatNumber(data.totalPopulation)} / ${formatNumber(target)}` : '۵ از ۵ پادشاهی';
   $('mute-button').setAttribute('aria-pressed', String(data.muted));
   $('mute-button').setAttribute('aria-label', data.muted ? 'وصل صدا' : 'قطع صدا');
   $('mute-button').title = data.muted ? 'وصل صدا' : 'قطع صدا';
@@ -205,6 +205,33 @@ $('mute-button').addEventListener('click', async () => {
   state.setMuted(!state.data.muted);
   sound.setMuted(state.data.muted);
   await sound.unlock();
+});
+let showTileLabels = false;
+try {
+  showTileLabels = localStorage.getItem('kingdom2048:showLabels') === '1';
+} catch { /* ignore storage errors */ }
+
+function applyTileLabelsVisibility() {
+  $('tile-labels').hidden = !showTileLabels;
+  const btn = $('labels-button');
+  if (btn) {
+    btn.setAttribute('aria-pressed', String(showTileLabels));
+    const label = showTileLabels ? 'مخفی کردن عدد خانه‌ها' : 'نمایش عدد خانه‌ها';
+    btn.setAttribute('aria-label', label);
+    btn.title = label;
+  }
+  const iconUse = $('labels-icon');
+  if (iconUse) iconUse.setAttribute('href', showTileLabels ? '#i-eye' : '#i-eye-off');
+}
+
+applyTileLabelsVisibility();
+
+$('labels-button')?.addEventListener('click', () => {
+  showTileLabels = !showTileLabels;
+  try {
+    localStorage.setItem('kingdom2048:showLabels', showTileLabels ? '1' : '0');
+  } catch { /* ignore storage errors */ }
+  applyTileLabelsVisibility();
 });
 $('undo-button').addEventListener('click', () => engine?.undo());
 $('swap-button').addEventListener('click', () => {
